@@ -20,6 +20,8 @@ export default function ComposePage() {
   const [baking, setBaking] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [scheduledFor, setScheduledFor] = useState("");
+  const [captionSuggestions, setCaptionSuggestions] = useState<string[]>([]);
+  const [generatingSuggestions, setGeneratingSuggestions] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("compose_draft");
@@ -65,6 +67,25 @@ export default function ComposePage() {
       toast.error("Erro ao gerar slides");
     } finally {
       setBaking(false);
+    }
+  };
+
+  const generateSuggestions = async () => {
+    setGeneratingSuggestions(true);
+    try {
+      const res = await fetch("/api/content/generate-caption", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentCaption: caption, brand: draft?.brand }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Falha");
+      setCaptionSuggestions(json.data ?? []);
+      toast.success("3 opções prontas");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao gerar legendas");
+    } finally {
+      setGeneratingSuggestions(false);
     }
   };
 
@@ -161,6 +182,35 @@ export default function ComposePage() {
           rows={3}
           className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm mb-4"
         />
+
+        <div className="mb-6 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm font-semibold">Assistente de legenda</p>
+              <p className="text-xs text-zinc-500">Gere 3 variações rápidas para a sua campanha.</p>
+            </div>
+            <button
+              onClick={generateSuggestions}
+              disabled={generatingSuggestions}
+              className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            >
+              {generatingSuggestions ? "Gerando..." : "Gerar variações"}
+            </button>
+          </div>
+          {captionSuggestions.length > 0 && (
+            <div className="space-y-2">
+              {captionSuggestions.map((suggestion, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCaption(suggestion)}
+                  className="w-full rounded-xl border border-white/10 bg-zinc-950/80 px-3 py-2 text-left text-sm text-zinc-300 hover:border-violet-500/40"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <label className="block text-xs text-zinc-500 mb-2">Contas</label>
         <div className="flex flex-wrap gap-2 mb-6">

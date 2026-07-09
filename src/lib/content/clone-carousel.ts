@@ -93,3 +93,49 @@ export async function cloneCarouselAI(
   const parsed = JSON.parse(data.choices[0].message.content);
   return parsed as CloneCarouselResult;
 }
+
+export async function generateCaptionVariants(
+  currentCaption: string,
+  brand?: Partial<Brand>
+): Promise<string[]> {
+  if (!process.env.OPENAI_API_KEY) {
+    const name = brand?.name ?? "seu produto";
+    const category = brand?.category ?? "produtividade";
+    const cta = brand?.cta_text ?? "Teste grátis";
+    const base = currentCaption || `Como ${name} ajuda times de ${category} a ganhar tempo.`;
+    return [
+      `${base} ${cta}`,
+      `${base} de forma simples e prática.`,
+      `A melhor forma de transformar ${category} em execução real com ${name}.`,
+    ];
+  }
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content:
+            "Você gera 3 variações de legenda para posts de marketing em pt-BR. Responda JSON: { suggestions: string[] }.",
+        },
+        {
+          role: "user",
+          content: `Marca: ${JSON.stringify(brand ?? {})}. Legenda atual: ${currentCaption}`,
+        },
+      ],
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message ?? "Falha ao gerar legendas");
+
+  const parsed = JSON.parse(data.choices[0].message.content);
+  return parsed.suggestions as string[];
+}
