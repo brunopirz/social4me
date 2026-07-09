@@ -105,3 +105,38 @@ export async function exchangeCode(
       };
   }
 }
+
+export async function refreshAccessToken(
+  platform: Platform,
+  refreshToken: string
+): Promise<{ accessToken: string; refreshToken?: string; expiresIn?: number }> {
+  if (!refreshToken) throw new Error("Refresh token ausente");
+
+  if (platform === "linkedin") {
+    const res = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: process.env.LINKEDIN_CLIENT_ID!,
+        client_secret: process.env.LINKEDIN_CLIENT_SECRET!,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description ?? "Refresh LinkedIn failed");
+
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresIn: data.expires_in,
+    };
+  }
+
+  return {
+    accessToken: `dev_refreshed_${platform}_${refreshToken.slice(0, 8)}`,
+    refreshToken,
+    expiresIn: 3600,
+  };
+}

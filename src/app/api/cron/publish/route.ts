@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { getPublisher } from "@/lib/platforms/publishers";
+import { refreshAccessToken } from "@/lib/platforms/oauth";
 import type { Platform } from "@/types";
 
 export async function POST(request: Request) {
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
       id: string;
       platform: Platform;
       access_token: string;
+      refresh_token: string | null;
       metadata: Record<string, unknown>;
     };
 
@@ -63,9 +65,15 @@ export async function POST(request: Request) {
     const mediaUrls = (media ?? []).map((m) => m.public_url).filter(Boolean) as string[];
 
     try {
+      let accessToken = account.access_token;
+      if (account.refresh_token && account.access_token.startsWith("dev_token_")) {
+        const refreshed = await refreshAccessToken(account.platform, account.refresh_token);
+        accessToken = refreshed.accessToken;
+      }
+
       const publisher = getPublisher(account.platform);
       const result = await publisher.publish({
-        accessToken: account.access_token,
+        accessToken,
         caption: (target.caption_override as string) || post.caption,
         mediaUrls,
         metadata: account.metadata,
