@@ -9,6 +9,27 @@ import { bakeSlide } from "@/lib/canvas/bake-slide";
 import type { AspectRatio, ComposeDraft, SocialAccount } from "@/types";
 import { ASPECT_PRESETS } from "@/types";
 
+async function uploadBakedSlidesToStorage(files: Blob[], userId: string) {
+  const supabase = createClient();
+  const urls: string[] = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const path = `${userId}/posts/${Date.now()}-${i}.png`;
+    const { error } = await supabase.storage.from("post-media").upload(path, file, {
+      upsert: true,
+      contentType: "image/png",
+    });
+
+    if (error) throw error;
+
+    const { data } = supabase.storage.from("post-media").getPublicUrl(path);
+    urls.push(data.publicUrl);
+  }
+
+  return urls;
+}
+
 export default function ComposePage() {
   const { user } = useAuth();
   const [draft, setDraft] = useState<ComposeDraft | null>(null);
@@ -96,8 +117,11 @@ export default function ComposePage() {
     }
     setScheduling(true);
     try {
-      // Em produção: upload para Supabase Storage e URLs públicas
-      const mediaUrls = bakedUrls; // blob URLs funcionam só em dev local
+      if (!user) throw new Error("Usuário não autenticado");
+      const mediaBlobs = await Promise.all(
+        bakedUrls.map((url) => fetch(url).then((r) => r.blob()))
+      );
+      const mediaUrls = await uploadBakedSlidesToStorage(mediaBlobs, user.id);
 
       const res = await fetch("/api/posts/schedule", {
         method: "POST",
