@@ -42,6 +42,25 @@ A versão aqui criada preserva esse núcleo, mas deixa a stack sob seu controle.
 - [docs/ANALISE_POST4ME.md](docs/ANALISE_POST4ME.md)
 - [docs/ANALISE_SOCIAL_PULSE.md](docs/ANALISE_SOCIAL_PULSE.md)
 
+## Variáveis de ambiente
+
+Copie [.env.example](.env.example) para .env.local e preencha os valores do Supabase, OAuth e da sua chave de IA opcional.
+
+## Rodar localmente
+
+```bash
+npm install
+npm run dev
+```
+
+A aplicação ficará disponível em http://localhost:3000 e o health check está em /api/health.
+
+## Rodar com Docker
+
+```bash
+docker compose up --build
+```
+
 ## Próximos passos
 
 - Subir mídia para Supabase Storage no compositor
