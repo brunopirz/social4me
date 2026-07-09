@@ -1,4 +1,4 @@
-# Social Pulse
+# Social 4 me
 
 Base self-hosted inspirada no fluxo do Post4me para clonar, adaptar e publicar carrosséis em múltiplas redes sem depender de planos pagos de terceiros.
 
@@ -68,3 +68,5 @@ docker compose up --build
 - Conectar apps reais de TikTok, Meta, LinkedIn e X
 - Adicionar analytics reais por plataforma
 - Transformar a fila em worker robusto com retries
+
+Licensa MIT
