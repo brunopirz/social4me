@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Social Pulse
 
-## Getting Started
+Base self-hosted inspirada no fluxo do Post4me para clonar, adaptar e publicar carrosséis em múltiplas redes sem depender de planos pagos de terceiros.
 
-First, run the development server:
+## O que a base faz
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Clone de carrossel com 3 variações de copy
+- Bake de slides para formatos como 9:16, 1:1 e 4:5
+- Fluxo de onboarding com marca, clone, conexão de contas e publicação
+- Agendamento e publicação via API routes + worker por cron
+- Autenticação com Google e integração OAuth por plataforma
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Arquitetura principal
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Frontend: Next.js 16 + React 19 + Tailwind 4
+- Auth + banco: Supabase (Postgres + Google OAuth)
+- Storage: Supabase Storage
+- Publicação: API routes com publishers por plataforma
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Como usar
 
-## Learn More
+1. Crie um projeto no Supabase
+2. Aplique o SQL em [supabase/migrations/001_initial.sql](supabase/migrations/001_initial.sql)
+3. Configure Google OAuth e um bucket chamado post-media
+4. Copie as variáveis de ambiente para .env.local
+5. Execute npm install && npm run dev
 
-To learn more about Next.js, take a look at the following resources:
+## O que foi aprendido com o Post4me
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+O fluxo de produto do Post4me é simples e poderoso:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Clonar um carrossel viral
+2. Adaptar a copy para a própria marca
+3. Renderizar o texto na imagem para ficar nativo em cada rede
+4. Distribuir para várias contas em um único fluxo
+5. Medir o que funcionou e iterar
 
-## Deploy on Vercel
+A versão aqui criada preserva esse núcleo, mas deixa a stack sob seu controle.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentação
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [docs/ANALISE_POST4ME.md](docs/ANALISE_POST4ME.md)
+- [docs/ANALISE_SOCIAL_PULSE.md](docs/ANALISE_SOCIAL_PULSE.md)
+
+## Próximos passos
+
+- Subir mídia para Supabase Storage no compositor
+- Implementar refresh de tokens OAuth
+- Conectar apps reais de TikTok, Meta, LinkedIn e X
+- Adicionar analytics reais por plataforma
+- Transformar a fila em worker robusto com retries
